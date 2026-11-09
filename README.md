@@ -43,6 +43,9 @@ NestJS verifica la conexión antes de abrir el puerto HTTP.
 
 ### Registro e inicio de sesión
 
+Con el backend en ejecución, abre [Swagger UI](http://localhost:3000/api/docs).
+Expande **Autenticación** y usa **Try it out** para enviar solicitudes.
+
 Envía `POST /api/auth/register` con `nombre`, `email`, `password` y
 `rol` (`estudiante` o `instructor`). La contraseña requiere al menos ocho
 caracteres y admite hasta 72 bytes. El registro devuelve `201` con el usuario
