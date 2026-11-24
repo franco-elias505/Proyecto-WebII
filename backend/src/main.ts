@@ -11,9 +11,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     instrument: ObserveInstrument,
   });
+  app.enableCors({ origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173' });
   const swaggerConfig = new DocumentBuilder()
     .setTitle('MiniAula API')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   SwaggerModule.setup('api/docs', app, () =>
     SwaggerModule.createDocument(app, swaggerConfig),
@@ -22,7 +24,10 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 void bootstrap().catch(async (error: unknown) => {
-  Logger.error(error instanceof Error ? error.message : String(error), 'Bootstrap');
+  Logger.error(
+    error instanceof Error ? error.message : String(error),
+    'Bootstrap',
+  );
   await sequelize.close();
   process.exitCode = 1;
 });

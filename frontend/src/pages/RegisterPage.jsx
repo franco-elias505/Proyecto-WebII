@@ -1,137 +1,155 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import '../styles/Auth.css'
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  BookOpen,
+  GraduationCap,
+  LockKeyhole,
+  Mail,
+  UserRound,
+} from "lucide-react";
+import { api } from "../services/api";
+import AuthLayout from "../layouts/AuthLayout";
+import AuthField from "../components/AuthField";
+import { ErrorNotice } from "../components/RemoteState";
 
-function RegisterPage() {
-  const navigate = useNavigate()
+export default function RegisterPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
-    nombre: '',
-    email: '',
-    password: '',
-    rol: 'estudiante',
-  })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    nombre: "",
+    email: "",
+    password: "",
+    rol: "estudiante",
+  });
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  function change(event) {
+    setForm({ ...form, [event.target.name]: event.target.value });
   }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-
-    if (form.password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres.')
-      return
-    }
-
-    setLoading(true)
-
+  async function submit(event) {
+    event.preventDefault();
+    const validation = {};
+    if (!form.nombre.trim()) validation.nombre = "Cuéntanos cómo te llamas.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      validation.email = "Escribe un correo válido.";
+    if (Array.from(form.password).length < 8)
+      validation.password = "Usa al menos 8 caracteres.";
+    else if (new TextEncoder().encode(form.password).length > 72)
+      validation.password = "La contraseña admite hasta 72 bytes.";
+    setErrors(validation);
+    if (Object.keys(validation).length) return;
+    setBusy(true);
+    setError(null);
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.message || 'Error al registrar el usuario.')
-        return
-      }
-
-      // Registro exitoso, redirigir al login
-      navigate('/login', { state: { registered: true } })
-    } catch {
-      setError('Error de conexión con el servidor.')
+      await api.post("/auth/register", form);
+      navigate("/login", { state: { registered: true } });
+    } catch (error) {
+      setError(error);
     } finally {
-      setLoading(false)
+      setBusy(false);
     }
   }
-
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h2>Crear Cuenta</h2>
-          <p>Completa tus datos para registrarte</p>
-        </div>
-
-        {error && <div className="auth-error">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="nombre">Nombre Completo</label>
-            <input
-              id="nombre"
-              type="text"
-              name="nombre"
-              placeholder="Tu nombre completo"
-              value={form.nombre}
-              onChange={handleChange}
-              required
-              maxLength={120}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              placeholder="correo@ejemplo.com"
-              value={form.email}
-              onChange={handleChange}
-              required
-              maxLength={254}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              placeholder="Mínimo 8 caracteres"
-              value={form.password}
-              onChange={handleChange}
-              required
-              minLength={8}
-              maxLength={72}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="rol">Rol</label>
-            <select
-              id="rol"
-              name="rol"
-              value={form.rol}
-              onChange={handleChange}
+    <AuthLayout
+      title="Da tu primer paso."
+      description="Crea tu cuenta y encuentra tu próxima posibilidad."
+      footer={
+        <>
+          ¿Ya tienes una cuenta?{" "}
+          <Link className="font-semibold text-indigo-600" to="/login">
+            Inicia sesión
+          </Link>
+        </>
+      }
+    >
+      <ErrorNotice error={error} />
+      <form onSubmit={submit} noValidate>
+        <div
+          className="mb-6 grid grid-cols-2 gap-3"
+          role="group"
+          aria-label="Selecciona tu rol"
+        >
+          {[
+            {
+              rol: "estudiante",
+              Icon: BookOpen,
+              label: "Soy estudiante",
+              description: "Quiero aprender",
+            },
+            {
+              rol: "instructor",
+              Icon: GraduationCap,
+              label: "Soy instructor",
+              description: "Quiero compartir",
+            },
+          ].map(({ rol, Icon, label, description }) => (
+            <button
+              type="button"
+              key={rol}
+              aria-pressed={form.rol === rol}
+              onClick={() => setForm({ ...form, rol })}
+              className={
+                "rounded-xl border p-4 text-left transition-all " +
+                (form.rol === rol
+                  ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500"
+                  : "border-slate-200 hover:border-indigo-200")
+              }
             >
-              <option value="estudiante">Estudiante</option>
-              <option value="instructor">Instructor</option>
-            </select>
-          </div>
-
-          <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? 'Registrando...' : 'Registrarse'}
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          <p>
-            ¿Ya tienes cuenta?{' '}
-            <Link to="/login">Inicia sesión</Link>
-          </p>
+              <Icon
+                size={22}
+                className={
+                  form.rol === rol ? "text-indigo-600" : "text-slate-400"
+                }
+              />
+              <strong className="mt-3 block text-xs font-semibold">
+                {label}
+              </strong>
+              <span className="mt-1 block text-[11px] text-slate-400">
+                {description}
+              </span>
+            </button>
+          ))}
         </div>
-      </div>
-    </div>
-  )
+        <AuthField
+          name="nombre"
+          label="Nombre completo"
+          Icon={UserRound}
+          value={form.nombre}
+          onChange={change}
+          error={errors.nombre}
+          autoComplete="name"
+          maxLength={120}
+          placeholder="¿Cómo te llamas?"
+        />
+        <AuthField
+          name="email"
+          label="Correo electrónico"
+          Icon={Mail}
+          value={form.email}
+          onChange={change}
+          error={errors.email}
+          type="email"
+          autoComplete="email"
+          maxLength={254}
+          placeholder="tu@correo.com"
+        />
+        <AuthField
+          name="password"
+          label="Contraseña"
+          Icon={LockKeyhole}
+          value={form.password}
+          onChange={change}
+          error={errors.password}
+          type="password"
+          autoComplete="new-password"
+          placeholder="Mínimo 8 caracteres"
+        />
+        <button className="btn btn-primary w-full" disabled={busy}>
+          {busy ? "Creando cuenta…" : "Crear mi cuenta"}
+          <ArrowRight size={16} />
+        </button>
+      </form>
+    </AuthLayout>
+  );
 }
-
-export default RegisterPage

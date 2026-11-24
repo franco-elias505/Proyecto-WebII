@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthController } from './auth.controller';
 import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';
+import { AuthGuard } from './auth.guard';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AuthService } from './auth.service';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 5 }]),
   ],
   controllers: [AuthController],
-  providers: [AuthRepository, AuthService],
+  providers: [AuthRepository, AuthService, AuthGuard],
+  exports: [AuthGuard, JwtModule, AuthRepository],
 })
 export class AuthModule {}

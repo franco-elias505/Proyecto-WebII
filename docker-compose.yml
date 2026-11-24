@@ -10,6 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/migrations/001_esquema_inicial.sql:/docker-entrypoint-initdb.d/001_esquema_inicial.sql:ro
+      - ./database/migrations/002_archivos_lecciones.sql:/docker-entrypoint-initdb.d/002_archivos_lecciones.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -29,10 +30,14 @@ services:
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8080}
+      UPLOAD_DIR: /app/uploads
       OBSERVE_APP_KEY: ${OBSERVE_APP_KEY:-YOUR_APP_KEY}
       OBSERVE_APP_SECRET: ${OBSERVE_APP_SECRET:-YOUR_APP_SECRET}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
+    volumes:
+      - lesson_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,3 +53,4 @@ services:
 
 volumes:
   postgres_data:
+  lesson_uploads:

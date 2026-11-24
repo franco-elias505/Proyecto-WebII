@@ -33,7 +33,7 @@ export class AuthService {
 
   async register({ nombre, email, password, rol }: RegisterDto) {
     this.validatePasswordSize(password);
-    if ([...password].length < 8) {
+    if (Array.from(password).length < 8) {
       throw new BadRequestException(
         'La contraseña debe tener al menos 8 caracteres.',
       );
