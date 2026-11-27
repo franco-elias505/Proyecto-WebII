@@ -1,2 +1,0 @@
-allowBuilds:
-  "@nestjs/jwt@https://codeload.github.com/nestjs/jwt/tar.gz/2d0c5da7685e0103398870d0eeba911b7615d8e4": true
