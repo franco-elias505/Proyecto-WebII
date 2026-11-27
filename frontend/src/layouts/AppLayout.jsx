@@ -32,6 +32,11 @@ export function AppNavbar() {
           <NavLink to="/cursos" onClick={() => setMobile(false)}>
             Catálogo
           </NavLink>
+          {user?.rol === "estudiante" && (
+            <NavLink to="/mis-cursos" onClick={() => setMobile(false)}>
+              Mis cursos
+            </NavLink>
+          )}
           {user?.rol === "instructor" && (
             <NavLink to="/instructor/cursos" onClick={() => setMobile(false)}>
               Mis cursos
@@ -76,7 +81,7 @@ export function AppNavbar() {
                       to={
                         user.rol === "instructor"
                           ? "/instructor/cursos"
-                          : "/cursos"
+                          : "/mis-cursos"
                       }
                       onClick={() => setMenu(false)}
                     >
