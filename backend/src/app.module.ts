@@ -8,6 +8,9 @@ import { HttpErrorFilter } from './http-error.filter';
 import { DatabaseModule } from './database/database.module';
 import { CoursesModule } from './courses/courses.module';
 import { LessonsModule } from './lessons/lessons.module';
+import { InscriptionsModule } from './inscriptions/inscriptions.module';
+import { QuizzesModule } from './quizzes/quizzes.module';
+import { ProgressModule } from './progress/progress.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -16,6 +19,9 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     DatabaseModule,
     CoursesModule,
     LessonsModule,
+    InscriptionsModule,
+    QuizzesModule,
+    ProgressModule,
     AuthModule,
     // Distributed tracing, auto-correlated logs, request/job metrics, error
     // telemetry, alarms, and more — out of the box. Sign up at https://observe.nestjs.com,

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -15,17 +16,30 @@ import { RemoteState, ErrorNotice } from "../components/RemoteState";
 import { Badge, ProgressBar } from "../components/ui";
 import { FileList } from "../components/LessonFiles";
 import LessonVideo from "../components/LessonVideo";
+import QuizView from "../components/QuizView";
+import { api } from "../services/api";
 
 function Player({ lesson }) {
   const syllabus = useResource("/cursos/" + lesson.curso_id + "/lecciones");
   const items = syllabus.data || [];
   const current = items.find((item) => item.id === lesson.id);
-  const available = items.filter(
-    (item) => item.tipo === "contenido" && !item.bloqueada,
-  );
+  const available = items.filter((item) => !item.bloqueada);
   const previous = available.filter((item) => item.orden < lesson.orden).at(-1);
   const next = available.find((item) => item.orden > lesson.orden);
   const complete = items.filter((item) => item.completada).length;
+  const [completing, setCompleting] = useState(false);
+
+  const handleComplete = async () => {
+    try {
+      setCompleting(true);
+      await api.post(`/lecciones/${lesson.id}/completar`);
+      syllabus.reload();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCompleting(false);
+    }
+  };
   return (
     <>
       <Link
@@ -86,19 +100,12 @@ function Player({ lesson }) {
                     </span>
                   </>
                 );
-                if (item.bloqueada || item.tipo === "cuestionario")
+                if (item.bloqueada)
                   return (
                     <div
                       key={item.id}
-                      className={
-                        "lesson-nav-item " +
-                        (item.bloqueada ? "locked" : "text-slate-500")
-                      }
-                      title={
-                        item.bloqueada
-                          ? "Completa los requisitos anteriores para desbloquear"
-                          : "Lección de cuestionario"
-                      }
+                      className="lesson-nav-item locked"
+                      title="Completa los requisitos anteriores para desbloquear"
                       aria-disabled="true"
                     >
                       {content}
@@ -167,12 +174,24 @@ function Player({ lesson }) {
                     propios ejemplos.
                   </p>
                 </div>
+                {!current?.completada && (
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      className="btn btn-primary cursor-pointer disabled:opacity-50"
+                      disabled={completing}
+                      onClick={handleComplete}
+                    >
+                      <CheckCircle2 size={16} />
+                      {completing ? "Guardando..." : "Marcar como leída y avanzar"}
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
-              <p className="text-sm leading-7 text-slate-500">
-                Lección de cuestionario. Nota mínima de aprobación:{" "}
-                {lesson.nota_minima}/100.
-              </p>
+              <QuizView
+                lesson={lesson}
+                onCompleted={() => syllabus.reload()}
+              />
             )}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/40 p-5">

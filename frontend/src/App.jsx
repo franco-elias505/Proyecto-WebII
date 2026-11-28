@@ -10,6 +10,7 @@ import CourseDetailPage from "./pages/CourseDetailPage";
 import InstructorCoursesPage from "./pages/InstructorCoursesPage";
 import CourseEditorPage from "./pages/CourseEditorPage";
 import LessonPage from "./pages/LessonPage";
+import MyCoursesPage from "./pages/MyCoursesPage";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/cursos" element={<CatalogPage />} />
           <Route path="/cursos/:id" element={<CourseDetailPage />} />
           <Route element={<RequireSession role="estudiante" />}>
+            <Route path="/mis-cursos" element={<MyCoursesPage />} />
             <Route path="/lecciones/:id" element={<LessonPage />} />
           </Route>
           <Route element={<RequireSession role="instructor" />}>

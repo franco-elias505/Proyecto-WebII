@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useResource } from "../hooks/useResource";
+import { api } from "../services/api";
 
 import { RemoteState, ErrorNotice } from "../components/RemoteState";
 import { Avatar, Badge, CourseCover } from "../components/ui";
@@ -27,6 +29,22 @@ export default function CourseDetailPage() {
   const lessons = useResource(
     user?.rol === "estudiante" ? "/cursos/" + id + "/lecciones" : null,
   );
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollError, setEnrollError] = useState(null);
+
+  const handleEnroll = async () => {
+    try {
+      setEnrolling(true);
+      setEnrollError(null);
+      await api.post("/cursos/" + id + "/inscribirme");
+      lessons.reload();
+      course.reload();
+    } catch (err) {
+      setEnrollError(err.message || "Error al inscribirse en el curso.");
+    } finally {
+      setEnrolling(false);
+    }
+  };
   const enrolled = !!lessons.data && !lessons.loading && !lessons.error;
   const nextLesson =
     lessons.data?.find(
@@ -203,11 +221,26 @@ export default function CourseDetailPage() {
                     Iniciar sesión
                     <ArrowRight size={16} />
                   </Link>
+                ) : !enrolled ? (
+                  <div className="mt-5 space-y-3">
+                    <button
+                      className="btn btn-primary w-full cursor-pointer disabled:opacity-50"
+                      disabled={enrolling}
+                      onClick={handleEnroll}
+                    >
+                      {enrolling ? "Inscribiendo..." : "Inscribirme en este curso"}
+                      <ArrowRight size={16} />
+                    </button>
+                    {enrollError && (
+                      <p className="text-xs text-rose-500">{enrollError}</p>
+                    )}
+                    <p className="text-xs text-slate-500">
+                      Inscríbete gratis para acceder a todo el temario y cuestionarios.
+                    </p>
+                  </div>
                 ) : (
                   <p className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                    {enrolled
-                      ? "Completa los requisitos anteriores para acceder al siguiente contenido."
-                      : "El contenido de las lecciones requiere una inscripción en este curso."}
+                    Completa los requisitos anteriores para acceder al siguiente contenido.
                   </p>
                 )}
                 <div className="mt-6 space-y-3 border-t border-slate-100 pt-5 text-xs text-slate-500">
